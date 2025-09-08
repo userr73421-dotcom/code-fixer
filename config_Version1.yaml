@@ -1,0 +1,16 @@
+# Example CodeFixer config.yaml
+# Place in your repo root or $HOME/.codefixer/config.yaml
+
+depth: 4          # Max directory depth (default: 5)
+fix: true         # Enable auto-fix by default
+
+ignore:
+  - "node_modules/"
+  - "*.min.js"
+  - "vendor/"
+  - "*.lock"
+
+# Tool overrides (optional, use your project-specific commands)
+tool_python: "poetry run black"
+tool_javascript: "./node_modules/.bin/eslint"
+tool_shell: "/usr/local/bin/shellcheck"

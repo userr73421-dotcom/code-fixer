@@ -1,0 +1,5 @@
+# Example CodeFixer ignore file
+node_modules/
+vendor/
+*.min.js
+*.lock
