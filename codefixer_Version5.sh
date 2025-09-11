@@ -91,6 +91,21 @@ command_exists() {
     return 1
 }
 
+validate_file() {
+    local file="$1"
+    [[ -f "$file" ]] || { log "ERROR" "File not found: $file"; return 1; }
+    [[ -r "$file" ]] || { log "ERROR" "File not readable: $file"; return 1; }
+    [[ -s "$file" ]] || { log "WARN" "File is empty: $file"; return 1; }
+    
+    # Safety checks
+    [[ "$file" =~ ^/etc/ ]] && { log "WARN" "Skipping system file: $file"; return 1; }
+    [[ "$file" =~ ^/proc/ ]] && { log "WARN" "Skipping proc file: $file"; return 1; }
+    [[ "$file" =~ ^/sys/ ]] && { log "WARN" "Skipping sys file: $file"; return 1; }
+    [[ "$file" =~ ^/dev/ ]] && { log "WARN" "Skipping device file: $file"; return 1; }
+    
+    return 0
+}
+
 get_command_path() {
     local tool="$1"
     if [[ -n "${TOOL_OVERRIDE[$tool]:-}" ]]; then
@@ -119,7 +134,14 @@ backup_file() {
     [[ "${BACKUP_ENABLED:-true}" != true ]] && return
     [[ "$DRY_RUN" == true ]] && return
     local ts; ts=$(date +%Y%m%d_%H%M%S)
-    cp "$file" "$BACKUP_DIR/${ts}_$(basename "$file")"
+    local safe_name=$(echo "$file" | sed 's|/|_|g' | sed 's|^\._||')
+    local backup_path="$BACKUP_DIR/${ts}_${safe_name}"
+    if cp "$file" "$backup_path" 2>/dev/null; then
+        log "DEBUG" "Backed up $file to $backup_path"
+    else
+        log "ERROR" "Failed to backup $file"
+        return 1
+    fi
 }
 
 prompt_fix() {
@@ -136,6 +158,13 @@ load_ignore() {
     IGNORE_PATHS=()
     [[ -f "$IGNORE_FILE" ]] && mapfile -t IGNORE_PATHS < "$IGNORE_FILE"
     [[ -f "$GITIGNORE_FILE" ]] && while read -r line; do IGNORE_PATHS+=("$line"); done < "$GITIGNORE_FILE"
+}
+
+validate_config() {
+    [[ "$MAX_DEPTH" =~ ^[0-9]+$ ]] || { log "ERROR" "Invalid depth: $MAX_DEPTH (must be a number)"; exit 1; }
+    [[ "$PARALLEL_JOBS" =~ ^[0-9]+$ ]] || { log "ERROR" "Invalid jobs: $PARALLEL_JOBS (must be a number)"; exit 1; }
+    [[ "$MAX_DEPTH" -gt 0 && "$MAX_DEPTH" -le 20 ]] || { log "WARN" "Depth $MAX_DEPTH is unusual (recommended: 1-10)"; }
+    [[ "$PARALLEL_JOBS" -gt 0 && "$PARALLEL_JOBS" -le 32 ]] || { log "WARN" "Jobs $PARALLEL_JOBS is unusual (recommended: 1-16)"; }
 }
 
 load_config() {
@@ -164,6 +193,7 @@ load_config() {
             esac
         done < "$DEFAULT_CONFIG"
     fi
+    validate_config
 }
 
 declare -A FILE_PATTERNS=(
@@ -252,10 +282,9 @@ process_shell() {
         local cnt; cnt=$(echo "$out" | jq length 2>/dev/null || echo 0)
         [[ $cnt -gt 0 ]] && issues=$((issues+cnt))
         if [[ "$AUTO_FIX" == true && "$EXPERIMENTAL_FIXES" == true && $cnt -gt 0 ]]; then
-            prompt_fix "$file" || return
-            backup_file "$file"
-            sed -i.bak -E '/^[^#]*\$(?!@|\*|#)[A-Za-z_][A-Za-z0-9_]*/s/\$([A-Za-z_][A-Za-z0-9_]*)/\${\1}/g' "$file"
-            fixes=$((fixes+1))
+            log "WARN" "Experimental shell fixes disabled for safety. Use shellcheck --fix or manual fixes."
+            # Note: Experimental shell fixes removed due to potential file corruption
+            # Consider using shellcheck --fix or other safe shell formatters
         fi
     fi
     printf '{"file":%s,"lang":"shell","issues":%d,"fixed":%d}\n' "$(jq -R <<<"$file")" "$issues" "$fixes"
@@ -265,14 +294,26 @@ process_python() {
     local file="$1" issues=0 fixes=0
     if command_exists "pylint"; then
         local out; out=$(pylint --output-format=json "$file" 2>/dev/null || true)
-        local cnt; cnt=$(echo "$out" | jq length 2>/dev/null || echo 0)
+        local cnt; cnt=$(echo "$out" | jq 'if type == "array" then length else 0 end' 2>/dev/null || echo 0)
         [[ $cnt -gt 0 ]] && issues=$((issues+cnt))
     fi
     if [[ "$AUTO_FIX" == true ]]; then
         prompt_fix "$file" || return
         backup_file "$file"
-        if command_exists "black"; then black --quiet "$file" && ((fixes++)); fi
-        if command_exists "isort"; then isort --quiet "$file" && ((fixes++)); fi
+        if command_exists "black"; then 
+            if black --quiet "$file" 2>/dev/null; then 
+                ((fixes++))
+            else
+                log "WARN" "Black failed on $file"
+            fi
+        fi
+        if command_exists "isort"; then 
+            if isort --quiet "$file" 2>/dev/null; then 
+                ((fixes++))
+            else
+                log "WARN" "isort failed on $file"
+            fi
+        fi
     fi
     printf '{"file":%s,"lang":"python","issues":%d,"fixed":%d}\n' "$(jq -R <<<"$file")" "$issues" "$fixes"
 }
@@ -283,8 +324,8 @@ process_javascript() {
     [[ -x "./node_modules/.bin/eslint" ]] && eslint_bin="./node_modules/.bin/eslint"
     if command_exists "$eslint_bin"; then
         local out; out=$($eslint_bin --format json "$file" 2>/dev/null || true)
-        local errs; errs=$(echo "$out" | jq '.[0].errorCount' 2>/dev/null || echo 0)
-        local warns; warns=$(echo "$out" | jq '.[0].warningCount' 2>/dev/null || echo 0)
+        local errs; errs=$(echo "$out" | jq 'if length > 0 then .[0].errorCount else 0 end' 2>/dev/null || echo 0)
+        local warns; warns=$(echo "$out" | jq 'if length > 0 then .[0].warningCount else 0 end' 2>/dev/null || echo 0)
         issues=$((issues+errs+warns))
         if [[ "$AUTO_FIX" == true && $issues -gt 0 ]]; then
             prompt_fix "$file" || return
@@ -301,15 +342,24 @@ process_javascript() {
 process_json() {
     local file="$1" issues=0 fixes=0
     if ! command_exists "jq"; then
+        log "WARN" "jq not found, skipping JSON validation for $file"
         printf '{"file":%s,"lang":"json","issues":1,"fixed":0}\n' "$(jq -R <<<"$file")"
         return
     fi
-    jq empty "$file" 2>/dev/null || { issues=$((issues+1)); }
-    if [[ "$AUTO_FIX" == true ]]; then
+    if ! jq empty "$file" 2>/dev/null; then 
+        issues=$((issues+1))
+        log "WARN" "Invalid JSON: $file"
+    fi
+    if [[ "$AUTO_FIX" == true && $issues -gt 0 ]]; then
         prompt_fix "$file" || return
         backup_file "$file"
         local tmp; tmp=$(mktemp)
-        jq . "$file" > "$tmp" && mv "$tmp" "$file" && ((fixes++))
+        if jq . "$file" > "$tmp" 2>/dev/null && mv "$tmp" "$file"; then
+            ((fixes++))
+        else
+            log "ERROR" "Failed to fix JSON: $file"
+            rm -f "$tmp"
+        fi
     fi
     printf '{"file":%s,"lang":"json","issues":%d,"fixed":%d}\n' "$(jq -R <<<"$file")" "$issues" "$fixes"
 }
@@ -318,7 +368,7 @@ process_yaml() {
     local file="$1" issues=0 fixes=0
     if command_exists "yamllint"; then
         local out; out=$(yamllint -f parsable "$file" 2>/dev/null || true)
-        local cnt; cnt=$(echo "$out" | grep -c ':' || echo 0)
+        local cnt; cnt=$(echo "$out" | grep -c 'error\|warning' || echo 0)
         [[ $cnt -gt 0 ]] && issues=$((issues+cnt))
     fi
     if [[ "$AUTO_FIX" == true && $(command_exists "prettier") ]]; then
@@ -375,6 +425,7 @@ process_cpp() {
 
 process_file() {
     local file="$1"
+    validate_file "$file" || return 1
     local lang; lang=$(detect_language "$file")
     case "$lang" in
         shell)      process_shell "$file" ;;
@@ -420,10 +471,16 @@ process_directory() {
     log "INFO" "Found $n_files files."
     local stats_tmp; stats_tmp=$(mktemp)
     if [[ "$PARALLEL_JOBS" -gt 1 && "$PROMPT_MODE" == false && "$CI_MODE" == false ]]; then
-        printf '%s\n' "${files[@]}" | xargs -n1 -P "$PARALLEL_JOBS" "$0" --worker > "$stats_tmp"
+        printf '%s\n' "${files[@]}" | xargs -n1 -P "$PARALLEL_JOBS" "$0" --worker > "$stats_tmp" 2>/dev/null || {
+            log "WARN" "Parallel processing failed, falling back to sequential"
+            for ((n=0; n<n_files; n++)); do
+                process_file "${files[$n]}" >> "$stats_tmp" 2>/dev/null || log "ERROR" "Failed to process ${files[$n]}"
+                show_progress $((n+1)) "$n_files" "$(basename "${files[$n]}")"
+            done
+        }
     else
         for ((n=0; n<n_files; n++)); do
-            process_file "${files[$n]}" >> "$stats_tmp"
+            process_file "${files[$n]}" >> "$stats_tmp" 2>/dev/null || log "ERROR" "Failed to process ${files[$n]}"
             show_progress $((n+1)) "$n_files" "$(basename "${files[$n]}")"
         done
     fi
