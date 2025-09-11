@@ -1,0 +1,126 @@
+{
+  "name": "codefixer",
+  "version": "6.0.0",
+  "description": "CodeFixer v6.0 - Senior Developer Edition - Multi-language code analysis and auto-fixing tool",
+  "main": "codefixer_v6.sh",
+  "bin": {
+    "codefixer": "./codefixer_v6.sh"
+  },
+  "scripts": {
+    "test": "./tests/test_runner.sh",
+    "test:unit": "./tests/test_runner.sh --unit",
+    "test:integration": "./tests/test_runner.sh --integration",
+    "test:performance": "./tests/test_runner.sh --performance",
+    "lint": "shellcheck codefixer_v6.sh lib/*.sh tests/*.sh",
+    "format": "./codefixer_v6.sh --fix .",
+    "security": "./codefixer_v6.sh --dry-run --report .",
+    "build": "make build",
+    "release": "make release",
+    "clean": "make clean",
+    "install:dev": "./install.sh --dev",
+    "ci": "make ci",
+    "qa": "make qa"
+  },
+  "keywords": [
+    "code",
+    "analysis",
+    "linting",
+    "formatting",
+    "multi-language",
+    "automation",
+    "ci-cd",
+    "quality",
+    "security",
+    "performance"
+  ],
+  "author": "CodeFixer Team <team@codefixer.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourorg/codefixer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourorg/codefixer/issues"
+  },
+  "homepage": "https://codefixer.dev",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "files": [
+    "codefixer_v6.sh",
+    "lib/",
+    "tests/",
+    "README*.md",
+    "LICENSE*",
+    "config*.yaml",
+    "*.txt",
+    "install.sh",
+    "Makefile",
+    "Dockerfile"
+  ],
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "markdownlint": "^0.28.0",
+    "stylelint": "^15.0.0"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "jq": ">=1.6",
+    "shellcheck": ">=0.8.0",
+    "yamllint": ">=1.28.0"
+  },
+  "config": {
+    "codefixer": {
+      "version": "6.0.0",
+      "minBashVersion": "4.0",
+      "supportedLanguages": [
+        "shell",
+        "python",
+        "javascript",
+        "typescript",
+        "json",
+        "yaml",
+        "markdown",
+        "go",
+        "rust",
+        "ruby",
+        "java",
+        "cpp"
+      ],
+      "defaultConfig": {
+        "maxDepth": 5,
+        "parallelJobs": 4,
+        "autoFix": false,
+        "backupEnabled": true,
+        "verbose": false,
+        "ciMode": false,
+        "generateReport": false,
+        "promptMode": false,
+        "experimentalFixes": false,
+        "gitOnly": false
+      }
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/codefixer"
+  },
+  "contributors": [
+    "CodeFixer Team <team@codefixer.dev>"
+  ],
+  "maintainers": [
+    "CodeFixer Team <team@codefixer.dev>"
+  ]
+}
