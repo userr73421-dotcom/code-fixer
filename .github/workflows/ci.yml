@@ -39,8 +39,8 @@ jobs:
     
     - name: Run security scan
       run: |
-        chmod +x codefixer_v6.sh
-        ./codefixer_v6.sh --dry-run --report .
+        chmod +x codefixer.sh
+        ./codefixer.sh --dry-run --report .
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -58,8 +58,8 @@ jobs:
     
     - name: Run security audit
       run: |
-        chmod +x codefixer_v6.sh
-        ./codefixer_v6.sh --dry-run --report .
+        chmod +x codefixer.sh
+        ./codefixer.sh --dry-run --report .
     
     - name: Check for vulnerabilities
       run: |
@@ -87,13 +87,13 @@ jobs:
     
     - name: Performance test
       run: |
-        chmod +x codefixer_v6.sh
-        time ./codefixer_v6.sh --dry-run --jobs 8 .
+        chmod +x codefixer.sh
+        time ./codefixer.sh --dry-run --jobs 8 .
     
     - name: Memory test
       run: |
-        chmod +x codefixer_v6.sh
-        valgrind --tool=memcheck --leak-check=full ./codefixer_v6.sh --dry-run . || true
+        chmod +x codefixer.sh
+        valgrind --tool=memcheck --leak-check=full ./codefixer.sh --dry-run . || true
 
   build:
     runs-on: ubuntu-latest
@@ -104,7 +104,7 @@ jobs:
     - name: Create release package
       run: |
         mkdir -p release
-        cp codefixer_v6.sh release/
+        cp codefixer.sh release/
         cp -r lib/ release/
         cp -r tests/ release/
         cp README*.md release/

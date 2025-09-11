@@ -117,7 +117,7 @@ RUN mkdir -p /app /home/codefixer/.codefixer/{logs,backups,cache}
 RUN chown -R codefixer:codefixer /app /home/codefixer/.codefixer
 
 # Copy application files
-COPY --chown=codefixer:codefixer codefixer_v6.sh /app/
+COPY --chown=codefixer:codefixer codefixer.sh /app/
 COPY --chown=codefixer:codefixer lib/ /app/lib/
 COPY --chown=codefixer:codefixer tests/ /app/tests/
 COPY --chown=codefixer:codefixer README*.md /app/
@@ -126,7 +126,7 @@ COPY --chown=codefixer:codefixer config*.yaml /app/
 COPY --chown=codefixer:codefixer *.txt /app/
 
 # Make scripts executable
-RUN chmod +x /app/codefixer_v6.sh
+RUN chmod +x /app/codefixer.sh
 RUN chmod +x /app/lib/*.sh
 RUN chmod +x /app/tests/*.sh
 
@@ -143,10 +143,10 @@ ENV CACHE_DIR=/home/codefixer/.codefixer/cache
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD ./codefixer_v6.sh --version || exit 1
+    CMD ./codefixer.sh --version || exit 1
 
 # Default command
-ENTRYPOINT ["./codefixer_v6.sh"]
+ENTRYPOINT ["./codefixer.sh"]
 CMD ["--help"]
 
 # Labels

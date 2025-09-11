@@ -2,18 +2,18 @@
   "name": "codefixer",
   "version": "6.0.0",
   "description": "CodeFixer v6.0 - Senior Developer Edition - Multi-language code analysis and auto-fixing tool",
-  "main": "codefixer_v6.sh",
+  "main": "codefixer.sh",
   "bin": {
-    "codefixer": "./codefixer_v6.sh"
+    "codefixer": "./codefixer.sh"
   },
   "scripts": {
     "test": "./tests/test_runner.sh",
     "test:unit": "./tests/test_runner.sh --unit",
     "test:integration": "./tests/test_runner.sh --integration",
     "test:performance": "./tests/test_runner.sh --performance",
-    "lint": "shellcheck codefixer_v6.sh lib/*.sh tests/*.sh",
-    "format": "./codefixer_v6.sh --fix .",
-    "security": "./codefixer_v6.sh --dry-run --report .",
+    "lint": "shellcheck codefixer.sh lib/*.sh tests/*.sh",
+    "format": "./codefixer.sh --fix .",
+    "security": "./codefixer.sh --dry-run --report .",
     "build": "make build",
     "release": "make release",
     "clean": "make clean",

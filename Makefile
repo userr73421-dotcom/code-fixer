@@ -5,7 +5,7 @@
 
 # Configuration
 VERSION := 6.0.0
-SCRIPT_NAME := codefixer_v6.sh
+SCRIPT_NAME := codefixer.sh
 TEST_DIR := tests
 LIB_DIR := lib
 DOCS_DIR := docs

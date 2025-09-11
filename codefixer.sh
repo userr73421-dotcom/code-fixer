@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# CodeFixer v6.0 - Senior Developer Edition
+# CodeFixer - Senior Developer Edition
 # Modular, scalable, production-ready code analysis and fixing tool
 # (C) 2025 Senior Developer + AI
 

@@ -1,0 +1,49 @@
+# CodeFixer Configuration
+# Senior Developer Edition
+
+# Core settings
+depth: 5
+parallel_jobs: 4
+fix: false
+backup_enabled: true
+verbose: false
+ci_mode: false
+generate_report: false
+prompt_mode: false
+experimental_fixes: false
+git_only: false
+
+# Ignore patterns
+ignore:
+  - "node_modules/"
+  - "*.min.js"
+  - "vendor/"
+  - "*.lock"
+  - "*.log"
+  - "*.tmp"
+  - "*.bak"
+  - ".git/"
+  - "__pycache__/"
+  - ".cache/"
+  - "*.pyc"
+  - "*.pyo"
+  - "*.pyd"
+  - ".pytest_cache/"
+  - ".coverage"
+  - "htmlcov/"
+  - ".tox/"
+  - ".venv/"
+  - "venv/"
+  - "env/"
+  - ".env"
+
+# Tool overrides (optional)
+# Uncomment and modify as needed for your environment
+# tool_python: "python3 -m black"
+# tool_javascript: "npx eslint"
+# tool_shell: "shellcheck"
+# tool_json: "jq"
+# tool_yaml: "yamllint"
+# tool_go: "gofmt"
+# tool_rust: "rustfmt"
+# tool_cpp: "clang-format"

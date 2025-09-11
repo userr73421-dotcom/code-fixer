@@ -1,0 +1,66 @@
+# CodeFixer ignore file
+# Files and directories to skip during analysis
+
+# Dependencies
+node_modules/
+vendor/
+bower_components/
+
+# Build outputs
+dist/
+build/
+out/
+target/
+
+# Cache directories
+.cache/
+__pycache__/
+.pytest_cache/
+.nyc_output/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Minified files
+*.min.js
+*.min.css
+
+# Lock files
+package-lock.json
+yarn.lock
+Pipfile.lock
+Gemfile.lock
+Cargo.lock
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Test outputs
+test-results/
+coverage/

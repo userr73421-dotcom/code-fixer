@@ -7,7 +7,7 @@ set -euo pipefail
 # Test configuration
 readonly TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly PROJECT_ROOT="$(dirname "$TEST_DIR")"
-readonly SCRIPT_PATH="$PROJECT_ROOT/codefixer_v6.sh"
+readonly SCRIPT_PATH="$PROJECT_ROOT/codefixer.sh"
 readonly TEST_DATA_DIR="$TEST_DIR/data"
 readonly TEST_OUTPUT_DIR="$TEST_DIR/output"
 

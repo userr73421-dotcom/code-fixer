@@ -198,7 +198,7 @@ install_codefixer() {
     log "INFO" "Installing CodeFixer v$VERSION..."
     
     # Copy main script
-    cp codefixer_v6.sh "$BIN_DIR/codefixer"
+    cp codefixer.sh "$BIN_DIR/codefixer"
     chmod +x "$BIN_DIR/codefixer"
     
     # Copy library modules
@@ -220,7 +220,7 @@ install_codefixer() {
     cp *.txt "$CONFIG_DIR/"
     
     # Create symlink for easy access
-    ln -sf "$BIN_DIR/codefixer" "$BIN_DIR/codefixer_v6"
+    ln -sf "$BIN_DIR/codefixer" "$BIN_DIR/codefixer-latest"
     
     log "SUCCESS" "CodeFixer installed to $INSTALL_DIR"
 }
